@@ -11,11 +11,11 @@ const logoUrl = '/images/home/nthu-thorweb-logo.png'
  * 這些圖片請之後放到 public/images/home/。
  */
 const stageCardImages = {
-  stage1: '/images/home/journey-stage1.jpg',
-  stage2: '/images/home/journey-stage2.jpg',
-  stage3: '/images/home/journey-stage3.jpg',
-  stage4: '/images/home/journey-stage4.jpg',
-  bingo: '/images/home/journey-bingo.jpg',
+  stage1: '/images/home/journey-stage1.png',
+  stage2: '/images/home/journey-stage2.png',
+  stage3: '/images/home/journey-stage3.png',
+  stage4: '/images/home/journey-stage4.png',
+  bingo: '/images/home/journey-bingo.png',
 }
 
 /**
@@ -43,7 +43,10 @@ const detailProgress = ref({
 })
 
 const showBingoHint = ref(false)
+const pressedItem = ref(null)
+
 let bingoHintTimer = null
+let pressFeedbackTimer = null
 
 const videoKeys = {
   stage1: 'thorWeb_stage1_videoWatched',
@@ -155,6 +158,19 @@ const journeySteps = computed(() => [
   },
 ])
 
+function runPressFeedback(key, action, delay = 150) {
+  pressedItem.value = key
+
+  if (pressFeedbackTimer) {
+    clearTimeout(pressFeedbackTimer)
+  }
+
+  pressFeedbackTimer = setTimeout(() => {
+    pressedItem.value = null
+    action()
+  }, delay)
+}
+
 function goToStep(step) {
   if (step.isBingo && !bingoUnlocked.value) {
     showBingoHint.value = true
@@ -170,11 +186,15 @@ function goToStep(step) {
     return
   }
 
-  router.push(step.path)
+  runPressFeedback(`journey-${step.id}`, () => {
+    router.push(step.path)
+  })
 }
 
 function startJourney() {
-  router.push('/stage1')
+  runPressFeedback('start-button', () => {
+    router.push('/stage1')
+  })
 }
 
 onMounted(() => {
@@ -193,6 +213,10 @@ onBeforeUnmount(() => {
 
   if (bingoHintTimer) {
     clearTimeout(bingoHintTimer)
+  }
+
+  if (pressFeedbackTimer) {
+    clearTimeout(pressFeedbackTimer)
   }
 })
 </script>
@@ -247,7 +271,12 @@ onBeforeUnmount(() => {
 
     <!-- 開始按鈕 -->
     <section class="start-section" aria-label="開始漫遊">
-      <button class="start-button" type="button" @click="startJourney">
+      <button
+        class="start-button"
+        :class="{ 'is-pressed': pressedItem === 'start-button' }"
+        type="button"
+        @click="startJourney"
+      >
         點擊並開始你的爐心漫遊，從恐懼走向理解吧！
       </button>
 
@@ -269,6 +298,7 @@ onBeforeUnmount(() => {
           :class="{
             'is-unlocked': step.imageUnlocked,
             'is-locked': step.isBingo && !bingoUnlocked,
+            'is-pressed': pressedItem === `journey-${step.id}`,
           }"
           type="button"
           :aria-disabled="step.isBingo && !bingoUnlocked"
@@ -320,7 +350,7 @@ onBeforeUnmount(() => {
     <footer class="footer">
       <p>指導單位：國立清華大學 王俊程、謝小芩、吳順吉、盧崇真 教授</p>
       <p>資料來源：國立清華大學 清華水池式反應爐</p>
-      <p>統籌、網頁UI設計與程式撰寫：吳佳穎</p>
+      <p>網頁UI設計與程式撰寫：吳佳穎</p>
       <p>影片製作與資料蒐集撰寫：林沛妤、陳郁阡、張昕愛</p>
     </footer>
   </main>
@@ -329,18 +359,28 @@ onBeforeUnmount(() => {
 <style scoped>
 .home-page {
   min-height: 100vh;
-  background-color: #0b3473;
-  background-image: url("/images/home/home-bg.png");
-  background-size: 100% auto;
-  background-position: center top;
-  background-repeat: repeat-y;
   color: #ffffff;
+  background:
+    linear-gradient(
+      180deg,
+      #c9f3f6 0%,
+      #9bd2ec 18%,
+      #5fa5d7 38%,
+      #1f61b2 62%,
+      #0b3473 100%
+    );
+  overflow-x: hidden;
   font-family:
     "Noto Sans TC",
     "Microsoft JhengHei",
     "PingFang TC",
     system-ui,
     sans-serif;
+}
+
+.home-page,
+.home-page * {
+  box-sizing: border-box;
 }
 
 /* =========================
@@ -597,6 +637,9 @@ onBeforeUnmount(() => {
   border-radius: 999px;
   background: #ffffff;
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
 }
 
 .step-label {
@@ -627,6 +670,26 @@ onBeforeUnmount(() => {
   box-shadow:
     0 0 0 5px rgba(201, 255, 255, 0.24),
     0 0 20px rgba(201, 255, 255, 0.7);
+}
+
+.start-button.is-pressed {
+  transform: scale(0.97);
+  background: #e3ffff;
+  box-shadow:
+    0 3px 0 rgba(19, 52, 91, 0.22),
+    0 10px 20px rgba(0, 35, 80, 0.18);
+}
+
+.journey-step.is-pressed .card-box {
+  transform: scale(0.96);
+  filter: brightness(1.08);
+}
+
+.journey-step.is-pressed .dot {
+  transform: scale(1.18);
+  box-shadow:
+    0 0 0 6px rgba(201, 255, 255, 0.22),
+    0 0 20px rgba(201, 255, 255, 0.65);
 }
 
 .journey-step.is-locked {
@@ -667,6 +730,28 @@ onBeforeUnmount(() => {
 .footer p {
   width: min(1080px, 92vw);
   margin: 0 auto 4px;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .start-button:active {
+    transform: scale(0.97);
+    background: #e3ffff;
+    box-shadow:
+      0 3px 0 rgba(19, 52, 91, 0.22),
+      0 10px 20px rgba(0, 35, 80, 0.18);
+  }
+
+  .journey-step:active .card-box {
+    transform: scale(0.96);
+    filter: brightness(1.08);
+  }
+
+  .journey-step:active .dot {
+    transform: scale(1.18);
+    box-shadow:
+      0 0 0 6px rgba(201, 255, 255, 0.22),
+      0 0 20px rgba(201, 255, 255, 0.65);
+  }
 }
 
 /* =========================

@@ -45,3 +45,17 @@ a {
   color: inherit;
   text-decoration: none;
 }
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  button:active,
+  a:active {
+    transform: scale(0.97);
+    filter: brightness(1.08);
+  }
+}
