@@ -45,6 +45,29 @@ const detailProgress = ref({
 const showBingoHint = ref(false)
 const pressedItem = ref(null)
 
+const bubbleItems = ref(createBubbleItems(28))
+
+function createBubbleItems(count) {
+  return Array.from({ length: count }, (_, index) => {
+    const size = Math.round(12 + Math.random() * 54)
+    const duration = 8 + Math.random() * 10
+    const delay = -(Math.random() * duration)
+    const drift = Math.round(-46 + Math.random() * 92)
+
+    return {
+      id: index,
+      style: {
+        '--bubble-size': `${size}px`,
+        '--bubble-left': `${Math.random() * 100}%`,
+        '--bubble-duration': `${duration.toFixed(2)}s`,
+        '--bubble-delay': `${delay.toFixed(2)}s`,
+        '--bubble-drift': `${drift}px`,
+        '--bubble-opacity': `${(0.22 + Math.random() * 0.28).toFixed(2)}`,
+      },
+    }
+  })
+}
+
 let bingoHintTimer = null
 let pressFeedbackTimer = null
 
@@ -187,13 +210,24 @@ function goToStep(step) {
   }
 
   runPressFeedback(`journey-${step.id}`, () => {
-    router.push(step.path)
+    if (step.isBingo) {
+      router.push(step.path)
+      return
+    }
+
+    router.push({
+      path: step.path,
+      hash: '#stage-title',
+    })
   })
 }
 
 function startJourney() {
   runPressFeedback('start-button', () => {
-    router.push('/stage1')
+    router.push({
+      path: '/stage1',
+      hash: '#stage-title',
+    })
   })
 }
 
@@ -223,6 +257,14 @@ onBeforeUnmount(() => {
 
 <template>
   <main class="home-page">
+    <div class="background-bubbles" aria-hidden="true">
+      <span
+        v-for="bubble in bubbleItems"
+        :key="bubble.id"
+        class="bubble"
+        :style="bubble.style"
+      ></span>
+    </div>
     <!-- Logo + 標題 -->
     <section class="top-section">
       <img class="logo" :src="logoUrl" alt="NTHU THOR Web Logo" />
@@ -285,7 +327,11 @@ onBeforeUnmount(() => {
     </section>
 
     <!-- 旅程軸 -->
-    <section class="journey-section" aria-label="爐心漫遊旅程軸">
+    <section
+      id="home-journey"
+      class="journey-section"
+      aria-label="爐心漫遊旅程軸"
+    >
       <h2 class="journey-title">爐心漫遊旅程軸</h2>
 
       <div class="journey-track">
@@ -358,6 +404,8 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .home-page {
+  position: relative;
+  isolation: isolate;
   min-height: 100vh;
   color: #ffffff;
   background:
@@ -383,6 +431,54 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
 }
 
+.background-bubbles {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.home-page > :not(.background-bubbles) {
+  position: relative;
+  z-index: 1;
+}
+
+.bubble {
+  position: absolute;
+  left: var(--bubble-left);
+  bottom: calc(var(--bubble-size) * -1);
+  width: var(--bubble-size);
+  height: var(--bubble-size);
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.82), rgba(201, 255, 255, 0.32) 46%, rgba(255, 255, 255, 0) 72%);
+  opacity: 0;
+  animation: bubble-float var(--bubble-duration) ease-in infinite;
+  animation-delay: var(--bubble-delay);
+}
+
+@keyframes bubble-float {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.65);
+    opacity: 0;
+  }
+
+  14% {
+    opacity: var(--bubble-opacity);
+  }
+
+  78% {
+    opacity: var(--bubble-opacity);
+  }
+
+  100% {
+    transform: translate3d(var(--bubble-drift), -112vh, 0) scale(1.08);
+    opacity: 0;
+  }
+}
+
 /* =========================
    Top Logo + Title
 ========================= */
@@ -403,7 +499,7 @@ onBeforeUnmount(() => {
 .main-title {
   margin: 0;
   color: #4a1974;
-  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-size: var(--font-home-main-title);
   font-weight: 900;
   letter-spacing: 0.08em;
   text-shadow:
@@ -434,7 +530,7 @@ onBeforeUnmount(() => {
   width: min(1080px, 92vw);
   text-align: center;
   color: #f4f8ff;
-  font-size: clamp(1rem, 1.65vw, 1.35rem);
+  font-size: var(--font-home-intro);
   line-height: 2.05;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -467,7 +563,7 @@ onBeforeUnmount(() => {
   border-radius: 10px;
   background: #c9ffff;
   color: #0b0b14;
-  font-size: clamp(1rem, 2vw, 1.3rem);
+  font-size: var(--font-home-start-button);
   font-weight: 900;
   letter-spacing: 0.06em;
   cursor: pointer;
@@ -497,14 +593,14 @@ onBeforeUnmount(() => {
 
 .or-text {
   margin: 36px 0 18px;
-  font-size: clamp(2rem, 4.6vw, 3.1rem);
+  font-size: var(--font-home-or-text);
   font-weight: 300;
   letter-spacing: 0.08em;
 }
 
 .jump-text {
   margin: 0;
-  font-size: clamp(1rem, 1.8vw, 1.35rem);
+  font-size: var(--font-home-jump-text);
   font-weight: 800;
   letter-spacing: 0.08em;
 }
@@ -517,11 +613,12 @@ onBeforeUnmount(() => {
   background: #123f92;
   padding: 54px 20px 64px;
   text-align: center;
+  scroll-margin-top: 32px;
 }
 
 .journey-title {
   margin: 0 0 70px;
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: var(--font-home-journey-title);
   font-weight: 900;
   letter-spacing: 0.08em;
 }
@@ -594,7 +691,7 @@ onBeforeUnmount(() => {
 
 .lock-icon {
   color: rgba(15, 32, 62, 0.42);
-  font-size: 0.78rem;
+  font-size: var(--font-journey-lock);
   font-weight: 900;
   letter-spacing: 0.12em;
 }
@@ -615,7 +712,7 @@ onBeforeUnmount(() => {
 
 .star {
   color: #181c03;
-  font-size: 34px;
+  font-size: var(--font-home-journey-star);
   line-height: 1;
   text-shadow:
     0 1px 0 rgba(255, 255, 255, 0.25),
@@ -646,7 +743,7 @@ onBeforeUnmount(() => {
   min-height: 60px;
   margin-top: 30px;
   color: #ffffff;
-  font-size: clamp(0.9rem, 1.3vw, 1.05rem);
+  font-size: var(--font-home-step-label);
   line-height: 1.35;
   font-weight: 500;
   letter-spacing: 0.03em;
@@ -711,6 +808,7 @@ onBeforeUnmount(() => {
   background: rgba(201, 255, 255, 0.15);
   color: #e8ffff;
   font-weight: 700;
+  font-size: var(--font-bingo-hint);
   letter-spacing: 0.04em;
 }
 
@@ -722,7 +820,7 @@ onBeforeUnmount(() => {
   background: #062c68;
   padding: 54px 20px 48px;
   color: #dbe8ff;
-  font-size: clamp(0.82rem, 1.2vw, 0.95rem);
+  font-size: var(--font-footer);
   line-height: 1.55;
   letter-spacing: 0.04em;
 }
@@ -820,10 +918,6 @@ onBeforeUnmount(() => {
     gap: 5px;
   }
 
-  .star {
-    font-size: 22px;
-  }
-
   .dot {
     grid-column: 2;
     grid-row: 1 / span 2;
@@ -835,7 +929,6 @@ onBeforeUnmount(() => {
     grid-row: 1 / span 2;
     min-height: auto;
     margin-top: 0;
-    font-size: 1rem;
     text-align: center;
     justify-self: center;
   }
@@ -857,14 +950,12 @@ onBeforeUnmount(() => {
   }
 
   .main-title {
-    font-size: 1.78rem;
     line-height: 1.35;
     letter-spacing: 0.04em;
   }
 
   .intro-text {
     text-align: left;
-    font-size: 0.98rem;
     line-height: 1.75;
   }
 
@@ -876,17 +967,7 @@ onBeforeUnmount(() => {
     width: 100%;
     min-height: 68px;
     padding: 16px 18px;
-    font-size: 1rem;
     line-height: 1.5;
-  }
-
-  .or-text {
-    margin-top: 30px;
-    font-size: 2.2rem;
-  }
-
-  .jump-text {
-    font-size: 1rem;
   }
 
   .journey-track {
@@ -912,10 +993,6 @@ onBeforeUnmount(() => {
   .dot {
     width: 20px;
     height: 20px;
-  }
-
-  .step-label {
-    font-size: 0.93rem;
   }
 
   .footer {

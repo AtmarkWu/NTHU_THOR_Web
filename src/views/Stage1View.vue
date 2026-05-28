@@ -1,8 +1,19 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+
+const currentStageId = 'stage1'
+const currentStagePath = '/stage1'
+const previousStagePath = null
+const nextStagePath = '/stage2'
+
+const stageAriaLabel = '節點一 輻射介紹'
+const stageKicker = '知識起點'
+const stageTitle = '- 輻射 -'
+
+const componentRewardTitle = '獲得了組件【輻射警告標示】'
 
 /**
  * YouTube 影片設定
@@ -49,9 +60,9 @@ const detailKeys = {
 }
 
 const pointKeyMap = {
-  point1: 'thorWeb_stage1_point1_viewed',
-  point2: 'thorWeb_stage1_point2_viewed',
-  point3: 'thorWeb_stage1_point3_viewed',
+  point1: `thorWeb_${currentStageId}_point1_viewed`,
+  point2: `thorWeb_${currentStageId}_point2_viewed`,
+  point3: `thorWeb_${currentStageId}_point3_viewed`,
 }
 
 const videoProgress = ref({
@@ -80,6 +91,61 @@ const showBingoHint = ref(false)
 const brokenJourneyImages = ref({})
 const youtubePlayer = ref(null)
 const pressedItem = ref(null)
+const journeyAxisRef = ref(null)
+const stageMainRef = ref(null)
+
+const bubbleItems = ref(createBubbleItems(28))
+
+function createBubbleItems(count) {
+  return Array.from({ length: count }, (_, index) => {
+    const size = Math.round(12 + Math.random() * 54)
+    const duration = 8 + Math.random() * 10
+    const delay = -(Math.random() * duration)
+    const drift = Math.round(-46 + Math.random() * 92)
+
+    return {
+      id: index,
+      style: {
+        '--bubble-size': `${size}px`,
+        '--bubble-left': `${Math.random() * 100}%`,
+        '--bubble-duration': `${duration.toFixed(2)}s`,
+        '--bubble-delay': `${delay.toFixed(2)}s`,
+        '--bubble-drift': `${drift}px`,
+        '--bubble-opacity': `${(0.22 + Math.random() * 0.28).toFixed(2)}`,
+      },
+    }
+  })
+}
+
+function focusCurrentJourneyStep(behavior = 'smooth') {
+  nextTick(() => {
+    const axis = journeyAxisRef.value
+
+    if (!axis) {
+      return
+    }
+
+    const isMobile = window.matchMedia('(max-width: 760px)').matches
+
+    if (!isMobile) {
+      return
+    }
+
+    const currentStep = axis.querySelector(`[data-stage-id="${currentStageId}"]`)
+
+    if (!currentStep) {
+      return
+    }
+
+    const targetLeft =
+      currentStep.offsetLeft - axis.clientWidth / 2 + currentStep.clientWidth / 2
+
+    axis.scrollTo({
+      left: Math.max(0, targetLeft),
+      behavior,
+    })
+  })
+}
 
 let bingoHintTimer = null
 let pressFeedbackTimer = null
@@ -220,12 +286,12 @@ function runPressFeedback(key, action, delay = 150) {
   }, delay)
 }
 
-function handleStage1VideoEnded() {
+function handleStageVideoEnded() {
   /**
    * 如果之前已經拿過組件，就不要重複跳彈窗。
    * 測試時如果想重新看到彈窗，可以清掉 localStorage。
    */
-  if (isTrue(localStorage.getItem(videoKeys.stage1))) {
+  if (isTrue(localStorage.getItem(videoKeys[currentStageId]))) {
     return
   }
 
@@ -239,14 +305,14 @@ function closeComponentRewardModal() {
    * 這裡才正式記錄影片已觀看。
    * 因此旅程軸圖片會在關閉彈窗後才顯示。
    */
-  localStorage.setItem(videoKeys.stage1, 'true')
+  localStorage.setItem(videoKeys[currentStageId], 'true')
 
   /**
    * 清除 Stage1 圖片錯誤暫存，讓圖片重新嘗試顯示。
    */
   brokenJourneyImages.value = {
     ...brokenJourneyImages.value,
-    stage1: false,
+    [currentStageId]: false,
   }
 
   loadProgress()
@@ -325,8 +391,17 @@ function createYouTubePlayer() {
 
 function handleYouTubeStateChange(event) {
   if (event.data === window.YT.PlayerState.ENDED) {
-    handleStage1VideoEnded()
+    handleStageVideoEnded()
   }
+}
+
+function scrollToStageTitle() {
+  nextTick(() => {
+    stageMainRef.value?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    })
+  })
 }
 
 function goToStep(step) {
@@ -345,19 +420,51 @@ function goToStep(step) {
   }
 
   runPressFeedback(`journey-${step.id}`, () => {
-    router.push(step.path)
+    if (step.path === currentStagePath) {
+      scrollToStageTitle()
+      return
+    }
+
+    if (step.isBingo) {
+      router.push(step.path)
+      return
+    }
+
+    router.push({
+      path: step.path,
+      hash: '#stage-title',
+    })
+  })
+}
+
+function goPrevStage() {
+  if (!previousStagePath) {
+    return
+  }
+
+  runPressFeedback('prev-button', () => {
+    router.push({
+      path: previousStagePath,
+      hash: '#stage-title',
+    })
   })
 }
 
 function goHome() {
   runPressFeedback('home-button', () => {
-    router.push('/')
+    router.push({
+      path: '/',
+      hash: '#home-journey',
+    })
   })
 }
 
 function goNextStage() {
   runPressFeedback('next-button', () => {
-    router.push('/stage2')
+    router.push({
+      path: nextStagePath,
+      hash: '#stage-title',
+    })
   })
 }
 
@@ -375,6 +482,7 @@ onMounted(async () => {
 
   await loadYouTubeApi()
   createYouTubePlayer()
+  focusCurrentJourneyStep('auto')
 })
 
 onBeforeUnmount(() => {
@@ -397,8 +505,16 @@ onBeforeUnmount(() => {
 
 <template>
   <main class="stage-page" :style="pageStyle">
+    <div class="background-bubbles" aria-hidden="true">
+      <span
+        v-for="bubble in bubbleItems"
+        :key="bubble.id"
+        class="bubble"
+        :style="bubble.style"
+      ></span>
+    </div>
     <!-- 上方旅程軸 -->
-    <section class="journey-section" aria-label="爐心漫遊旅程軸">
+    <section class="journey-section" aria-label="爐心漫遊旅程軸" ref="journeyAxisRef">
       <div class="journey-track">
         <div class="track-line" aria-hidden="true"></div>
 
@@ -412,6 +528,7 @@ onBeforeUnmount(() => {
             'is-locked': step.isBingo && !bingoUnlocked,
             'is-pressed': pressedItem === `journey-${step.id}`,
           }"
+          :data-stage-id="step.id"
           type="button"
           :aria-disabled="step.isBingo && !bingoUnlocked"
           @click="goToStep(step)"
@@ -463,10 +580,15 @@ onBeforeUnmount(() => {
     </section>
 
     <!-- 節點主內容 -->
-    <section class="stage-main" aria-label="節點一 輻射介紹">
+    <section
+      id="stage-title"
+      ref="stageMainRef"
+      class="stage-main"
+      :aria-label="stageAriaLabel"
+    >
       <div class="stage-title-card">
-        <p class="stage-kicker">知識起點</p>
-        <h1>- 輻射 -</h1>
+        <p class="stage-kicker">{{ stageKicker }}</p>
+        <h1>{{ stageTitle }}</h1>
       </div>
 
       <div class="intro-text">
@@ -527,18 +649,53 @@ onBeforeUnmount(() => {
     </section>
 
     <!-- 下方按鈕 -->
-    <section class="bottom-actions" aria-label="頁面跳轉按鈕">
+    <section
+      class="bottom-actions"
+      :class="{ 'bottom-actions-three': previousStagePath && nextStagePath }"
+      aria-label="頁面跳轉按鈕"
+    >
+      <button
+        v-if="previousStagePath"
+        class="nav-button nav-button-prev"
+        :class="{ 'is-pressed': pressedItem === 'prev-button' }"
+        type="button"
+        @click="goPrevStage"
+      >
+        <span class="icon-slot" aria-hidden="true">◀</span>
+        <span class="nav-button-text">退回上一站</span>
+      </button>
+
       <button
         class="nav-button nav-button-home"
         :class="{ 'is-pressed': pressedItem === 'home-button' }"
         type="button"
         @click="goHome"
       >
-        <span class="icon-slot" aria-hidden="true">◀</span>
+        <span class="icon-slot" aria-hidden="true">
+          <svg class="home-icon" viewBox="0 0 24 24" focusable="false">
+            <path
+              d="M3.5 10.8 12 3.5l8.5 7.3"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M5.8 10.4v9.1h4.1v-5.2h4.2v5.2h4.1v-9.1"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </span>
         <span class="nav-button-text">回到首頁</span>
       </button>
 
       <button
+        v-if="nextStagePath"
         class="nav-button nav-button-next"
         :class="{ 'is-pressed': pressedItem === 'next-button' }"
         type="button"
@@ -557,55 +714,61 @@ onBeforeUnmount(() => {
       <p>影片製作與資料蒐集撰寫：林沛妤、陳郁阡、張昕愛</p>
     </footer>
     <!-- 看完影片後：獲得組件彈窗 -->
-    <section
-      v-if="showComponentRewardModal"
-      class="modal-backdrop component-reward-backdrop"
-      aria-label="獲得組件彈窗"
-      @click="closeComponentRewardModalWithFeedback"
-    >
-      <div
-        class="component-reward-modal"
-        :class="{ 'is-pressed': pressedItem === 'component-reward-modal' }"
-        role="dialog"
-        aria-modal="true"
+    <Transition name="modal-pop" appear>
+      <section
+        v-if="showComponentRewardModal"
+        class="modal-backdrop component-reward-backdrop"
+        aria-label="獲得組件彈窗"
+        @click="closeComponentRewardModalWithFeedback"
       >
-        <div class="component-reward-text">
-          <h2>獲得了組件【輻射警告標示】</h2>
-          <p>點擊畫面關閉視窗</p>
+        <div
+          class="component-reward-modal"
+          :class="{ 'is-pressed': pressedItem === 'component-reward-modal' }"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div class="component-reward-text">
+            <h2>{{ componentRewardTitle }}</h2>
+            <p>點擊畫面關閉視窗</p>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </Transition>
 
     <!-- 知識重點彈窗 -->
-    <section
-      v-if="activePoint"
-      class="modal-backdrop knowledge-modal-backdrop"
-      aria-label="知識重點彈窗"
-      @click.self="closeKnowledgeModal"
-    >
-      <article class="knowledge-modal" role="dialog" aria-modal="true">
-        <button
-          class="modal-close"
-          :class="{ 'is-pressed': pressedItem === 'modal-close' }"
-          type="button"
-          aria-label="關閉知識視窗"
-          @click="closeKnowledgeModalWithFeedback"
-        >
-          <span class="modal-close-icon" aria-hidden="true"></span>
-        </button>
+    <Transition name="modal-pop" appear>
+      <section
+        v-if="activePoint"
+        class="modal-backdrop knowledge-modal-backdrop"
+        aria-label="知識重點彈窗"
+        @click.self="closeKnowledgeModal"
+      >
+        <article class="knowledge-modal" role="dialog" aria-modal="true">
+          <button
+            class="modal-close"
+            :class="{ 'is-pressed': pressedItem === 'modal-close' }"
+            type="button"
+            aria-label="關閉知識視窗"
+            @click="closeKnowledgeModalWithFeedback"
+          >
+            <span class="modal-close-icon" aria-hidden="true"></span>
+          </button>
 
-        <h2>{{ activePoint.title }}</h2>
+          <h2>{{ activePoint.title }}</h2>
 
-        <div class="knowledge-modal-content">
-          <p>{{ activePoint.body }}</p>
-        </div>
-      </article>
-    </section>
+          <div class="knowledge-modal-content">
+            <p>{{ activePoint.body }}</p>
+          </div>
+        </article>
+      </section>
+    </Transition>
   </main>
 </template>
 
 <style scoped>
 .stage-page {
+  position: relative;
+  isolation: isolate;
   min-height: 100vh;
   color: #ffffff;
   background:
@@ -629,6 +792,54 @@ onBeforeUnmount(() => {
 .stage-page,
 .stage-page * {
   box-sizing: border-box;
+}
+
+.background-bubbles {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.stage-page > :not(.background-bubbles):not(.modal-backdrop) {
+  position: relative;
+  z-index: 1;
+}
+
+.bubble {
+  position: absolute;
+  left: var(--bubble-left);
+  bottom: calc(var(--bubble-size) * -1);
+  width: var(--bubble-size);
+  height: var(--bubble-size);
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.82), rgba(201, 255, 255, 0.32) 46%, rgba(255, 255, 255, 0) 72%);
+  opacity: 0;
+  animation: bubble-float var(--bubble-duration) ease-in infinite;
+  animation-delay: var(--bubble-delay);
+}
+
+@keyframes bubble-float {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.65);
+    opacity: 0;
+  }
+
+  14% {
+    opacity: var(--bubble-opacity);
+  }
+
+  78% {
+    opacity: var(--bubble-opacity);
+  }
+
+  100% {
+    transform: translate3d(var(--bubble-drift), -112vh, 0) scale(1.08);
+    opacity: 0;
+  }
 }
 
 /* =========================
@@ -708,7 +919,7 @@ onBeforeUnmount(() => {
 
 .lock-icon {
   color: rgba(15, 32, 62, 0.45);
-  font-size: 0.78rem;
+  font-size: var(--font-journey-lock);
   font-weight: 900;
   letter-spacing: 0.16em;
 }
@@ -729,7 +940,7 @@ onBeforeUnmount(() => {
 
 .star {
   color: #111600;
-  font-size: 32px;
+  font-size: var(--font-stage-journey-star);
   line-height: 1;
   text-shadow:
     0 1px 0 rgba(255, 255, 255, 0.22),
@@ -786,7 +997,7 @@ onBeforeUnmount(() => {
   min-height: 64px;
   margin-top: 22px;
   color: #ffffff;
-  font-size: clamp(0.92rem, 1.15vw, 1.1rem);
+  font-size: var(--font-stage-step-label);
   line-height: 1.35;
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -829,6 +1040,7 @@ onBeforeUnmount(() => {
   background: rgba(201, 255, 255, 0.16);
   color: #e8ffff;
   font-weight: 700;
+  font-size: var(--font-bingo-hint);
   letter-spacing: 0.04em;
 }
 
@@ -839,6 +1051,7 @@ onBeforeUnmount(() => {
 .stage-main {
   padding: 46px 20px 70px;
   text-align: center;
+  scroll-margin-top: 32px;
 }
 
 .stage-title-card {
@@ -854,7 +1067,7 @@ onBeforeUnmount(() => {
 .stage-kicker {
   margin: 0 0 8px;
   color: #ffffff;
-  font-size: clamp(1.1rem, 1.8vw, 1.45rem);
+  font-size: var(--font-stage-kicker);
   font-weight: 900;
   letter-spacing: 0.08em;
 }
@@ -862,7 +1075,7 @@ onBeforeUnmount(() => {
 .stage-title-card h1 {
   margin: 0;
   color: #ffffff;
-  font-size: clamp(2.1rem, 4vw, 3.35rem);
+  font-size: var(--font-stage-title);
   line-height: 1.1;
   font-weight: 900;
   letter-spacing: 0.08em;
@@ -874,7 +1087,7 @@ onBeforeUnmount(() => {
   margin: 0 auto 54px;
   color: #10172b;
   text-align: center;
-  font-size: clamp(1rem, 1.55vw, 1.2rem);
+  font-size: var(--font-stage-intro);
   line-height: 1.75;
   letter-spacing: 0.05em;
 }
@@ -935,7 +1148,7 @@ onBeforeUnmount(() => {
 .knowledge-section h2 {
   margin: 0 0 30px;
   color: #ffffff;
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: var(--font-stage-knowledge-title);
   font-weight: 900;
   letter-spacing: 0.08em;
 }
@@ -944,7 +1157,7 @@ onBeforeUnmount(() => {
   width: min(900px, 86vw);
   margin: 0 auto 48px;
   color: #ffffff;
-  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  font-size: var(--font-stage-knowledge-description);
   line-height: 1.8;
   letter-spacing: 0.05em;
 }
@@ -964,7 +1177,7 @@ onBeforeUnmount(() => {
   border-radius: 8px;
   background: #e8fbff;
   color: #121826;
-  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  font-size: var(--font-stage-knowledge-button);
   font-weight: 600;
   letter-spacing: 0.06em;
   box-shadow:
@@ -995,7 +1208,7 @@ onBeforeUnmount(() => {
   place-items: center;
   background: #061d47;
   color: #fff27a;
-  font-size: 1.2rem;
+  font-size: var(--font-stage-knowledge-check);
   font-weight: 900;
   transform: translateY(-50%) scale(0);
   opacity: 0;
@@ -1036,11 +1249,12 @@ onBeforeUnmount(() => {
 .nav-button {
   width: min(390px, 38vw);
   min-height: 82px;
+  padding: 0 86px;
   border: 0;
   border-radius: 8px;
   background: #e8fbff;
   color: #111827;
-  font-size: clamp(1rem, 1.6vw, 1.22rem);
+  font-size: var(--font-stage-nav-button);
   font-weight: 500;
   letter-spacing: 0.06em;
   display: inline-flex;
@@ -1058,6 +1272,15 @@ onBeforeUnmount(() => {
     box-shadow 0.18s ease;
 }
 
+.bottom-actions-three {
+  gap: 32px;
+}
+
+.bottom-actions-three .nav-button {
+  width: min(320px, 29vw);
+  padding: 0 68px;
+}
+
 .nav-button:hover,
 .nav-button:focus-visible {
   transform: translateY(-3px);
@@ -1073,18 +1296,25 @@ onBeforeUnmount(() => {
   min-height: 44px;
   display: inline-grid;
   place-items: center;
-  font-size: 2.2rem;
+  font-size: var(--font-stage-nav-icon);
   line-height: 1;
   font-weight: 900;
   color: #000000;
 }
 
+.nav-button-prev .icon-slot,
 .nav-button-home .icon-slot {
   left: 36px;
 }
 
 .nav-button-next .icon-slot {
   right: 36px;
+}
+
+.home-icon {
+  width: 1em;
+  height: 1em;
+  display: block;
 }
 
 .nav-button-text {
@@ -1103,6 +1333,59 @@ onBeforeUnmount(() => {
   display: grid;
   place-items: center;
   background: rgba(0, 10, 38, 0.58);
+}
+
+/* 彈出視窗效果：用 Vue Transition 控制 */
+.stage-page > .modal-backdrop {
+  position: fixed;
+  z-index: 999;
+}
+
+.modal-pop-enter-active,
+.modal-pop-leave-active {
+  transition: opacity 0.22s ease;
+}
+
+.modal-pop-enter-from,
+.modal-pop-leave-to {
+  opacity: 0;
+}
+
+.modal-pop-enter-to,
+.modal-pop-leave-from {
+  opacity: 1;
+}
+
+.modal-pop-enter-active .component-reward-modal,
+.modal-pop-enter-active .knowledge-modal,
+.modal-pop-leave-active .component-reward-modal,
+.modal-pop-leave-active .knowledge-modal {
+  transform-origin: center;
+  transition:
+    opacity 0.34s ease,
+    transform 0.34s cubic-bezier(0.2, 0.9, 0.22, 1.18),
+    filter 0.34s ease;
+}
+
+.modal-pop-enter-from .component-reward-modal,
+.modal-pop-enter-from .knowledge-modal {
+  opacity: 0;
+  transform: translateY(26px) scale(0.82);
+  filter: blur(4px);
+}
+
+.modal-pop-enter-to .component-reward-modal,
+.modal-pop-enter-to .knowledge-modal {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+}
+
+.modal-pop-leave-to .component-reward-modal,
+.modal-pop-leave-to .knowledge-modal {
+  opacity: 0;
+  transform: translateY(10px) scale(0.96);
+  filter: blur(2px);
 }
 
 /* 看完影片後：獲得組件 */
@@ -1138,13 +1421,13 @@ onBeforeUnmount(() => {
 
 .component-reward-text h2 {
   margin: 0 0 22px;
-  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-size: var(--font-component-reward-title);
   font-weight: 900;
 }
 
 .component-reward-text p {
   margin: 0;
-  font-size: clamp(1.1rem, 2vw, 1.55rem);
+  font-size: var(--font-component-reward-body);
   font-weight: 500;
 }
 
@@ -1219,7 +1502,7 @@ onBeforeUnmount(() => {
 .knowledge-modal h2 {
   margin: 0 0 62px;
   text-align: center;
-  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-size: var(--font-knowledge-modal-title);
   font-weight: 900;
   letter-spacing: 0.08em;
 }
@@ -1238,7 +1521,7 @@ onBeforeUnmount(() => {
 
 .knowledge-modal-content p {
   margin: 0;
-  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  font-size: var(--font-knowledge-modal-body);
   line-height: 2;
   letter-spacing: 0.06em;
 }
@@ -1251,7 +1534,7 @@ onBeforeUnmount(() => {
   background: #062c68;
   padding: 54px 20px 48px;
   color: #dbe8ff;
-  font-size: clamp(0.82rem, 1.2vw, 0.95rem);
+  font-size: var(--font-footer);
   line-height: 1.55;
   letter-spacing: 0.04em;
 }
@@ -1358,6 +1641,8 @@ onBeforeUnmount(() => {
     overflow-y: visible;
     max-width: 100%;
     -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    scroll-padding-inline: 24px;
   }
 
   .journey-track {
@@ -1378,6 +1663,7 @@ onBeforeUnmount(() => {
     width: min(360px, 42vw);
   }
 
+  .nav-button-prev .icon-slot,
   .nav-button-home .icon-slot {
     left: 28px;
   }
@@ -1435,6 +1721,7 @@ onBeforeUnmount(() => {
     width: min(430px, 88vw);
   }
 
+  .nav-button-prev .icon-slot,
   .nav-button-home .icon-slot {
     left: 28px;
   }
@@ -1445,107 +1732,95 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 520px) {
-.journey-track {
-  width: 760px;
-  min-width: 760px;
-}
+  .journey-track {
+    width: 760px;
+    min-width: 760px;
+  }
 
-.card-box {
-  width: 112px;
-  height: 68px;
-}
+  .card-box {
+    width: 112px;
+    height: 68px;
+  }
 
-.star {
-  font-size: 26px;
-}
+  .track-line {
+    top: 183px;
+  }
 
-.track-line {
-  top: 183px;
-}
+  .stage-title-card {
+    border-width: 4px;
+    padding: 20px 16px 22px;
+  }
 
-.step-label {
-  font-size: 0.9rem;
-}
+  .video-card {
+    width: calc(100vw - 32px);
+    max-width: calc(100vw - 32px);
+    border-radius: 12px;
+  }
 
-.stage-title-card {
-  border-width: 4px;
-  padding: 20px 16px 22px;
-}
+  .knowledge-overlay {
+    padding: 56px 16px 64px;
+  }
 
-.video-card {
-  width: calc(100vw - 32px);
-  max-width: calc(100vw - 32px);
-  border-radius: 12px;
-}
+  .knowledge-detail {
+    padding: 24px 22px;
+  }
 
-.knowledge-overlay {
-  padding: 56px 16px 64px;
-}
+  .bottom-actions {
+    padding: 56px 16px;
+  }
 
-.knowledge-detail {
-  padding: 24px 22px;
-}
+  .footer {
+    padding: 38px 18px;
+  }
 
-.bottom-actions {
-  padding: 56px 16px;
-}
+  .component-reward-modal,
+  .knowledge-modal {
+    width: calc(100vw - 32px);
+    max-width: calc(100vw - 32px);
+    min-height: auto;
+    max-height: calc(100dvh - 32px);
+  }
 
-.footer {
-  padding: 38px 18px;
-}
+  .knowledge-modal {
+    padding: 76px 22px 38px;
+  }
 
-.component-reward-modal,
-.knowledge-modal {
-  width: calc(100vw - 32px);
-  max-width: calc(100vw - 32px);
-  min-height: auto;
-  max-height: calc(100dvh - 32px);
-}
+  .modal-close {
+    top: 18px;
+    right: 18px;
+    width: 44px;
+    height: 44px;
+  }
 
-.knowledge-modal {
-  padding: 76px 22px 38px;
-}
+  .knowledge-modal h2 {
+    margin-bottom: 36px;
+  }
 
-.modal-close {
-  top: 18px;
-  right: 18px;
-  width: 44px;
-  height: 44px;
-}
+  .knowledge-modal-content {
+    min-height: 280px;
+    padding: 28px 20px;
+  }
 
-.knowledge-modal h2 {
-  margin-bottom: 36px;
-}
+  .nav-button {
+    width: calc(100vw - 48px);
+    max-width: 430px;
+  }
 
-.knowledge-modal-content {
-  min-height: 280px;
-  padding: 28px 20px;
-}
+  .nav-button-prev .icon-slot,
+  .nav-button-home .icon-slot {
+    left: 28px;
+  }
 
-.nav-button {
-  width: calc(100vw - 48px);
-  max-width: 430px;
-}
+  .nav-button-next .icon-slot {
+    right: 28px;
+  }
 
-.nav-button-home .icon-slot {
-  left: 28px;
-}
+  .component-reward-text {
+    padding: 28px 18px;
+  }
 
-.nav-button-next .icon-slot {
-  right: 28px;
-}
-
-.component-reward-text {
-  padding: 28px 18px;
-}
-
-.component-reward-text h2 {
-  font-size: 1.45rem;
-  line-height: 1.45;
-}
-
-.component-reward-text p {
-  font-size: 1rem;
-}
+  .component-reward-text h2 {
+    line-height: 1.45;
+  }
 }
 </style>

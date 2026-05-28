@@ -40,6 +40,26 @@ const router = createRouter({
       component: BingoView,
     },
   ],
+
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition
+    }
+
+    if (to.hash) {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({
+            el: to.hash,
+            top: 32,
+            behavior: 'smooth',
+          })
+        }, 80)
+      })
+    }
+
+    return { top: 0 }
+  },
 })
 
 export default router

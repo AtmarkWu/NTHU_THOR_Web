@@ -1,0 +1,198 @@
+:root {
+  /* 全站字級倍率：全部放大就改 1.05 / 1.1，全部縮小就改 0.95 */
+  --font-scale: 1;
+
+  /* =========================
+     Common / 共用
+  ========================= */
+
+  --font-footer: clamp(
+    calc(0.6rem * var(--font-scale)),
+    calc(1.2vw * var(--font-scale)),
+    calc(0.75rem * var(--font-scale))
+  );
+
+  --font-journey-lock: calc(0.78rem * var(--font-scale));
+
+  --font-bingo-hint: clamp(
+    calc(0.9rem * var(--font-scale)),
+    calc(1.25vw * var(--font-scale)),
+    calc(1.05rem * var(--font-scale))
+  );
+
+  /* =========================
+     HomeView.vue / 首頁
+  ========================= */
+
+  --font-home-main-title: clamp(
+    calc(2rem * var(--font-scale)),
+    calc(4vw * var(--font-scale)),
+    calc(3.2rem * var(--font-scale))
+  );
+
+  --font-home-intro: clamp(
+    calc(0.8rem * var(--font-scale)),
+    calc(1.65vw * var(--font-scale)),
+    calc(1.15rem * var(--font-scale))
+  );
+
+  --font-home-start-button: clamp(
+    calc(1rem * var(--font-scale)),
+    calc(2vw * var(--font-scale)),
+    calc(1.3rem * var(--font-scale))
+  );
+
+  --font-home-or-text: clamp(
+    calc(2rem * var(--font-scale)),
+    calc(4.6vw * var(--font-scale)),
+    calc(3.1rem * var(--font-scale))
+  );
+
+  --font-home-jump-text: clamp(
+    calc(1rem * var(--font-scale)),
+    calc(1.8vw * var(--font-scale)),
+    calc(1.3rem * var(--font-scale))
+  );
+
+  --font-home-journey-title: clamp(
+    calc(2rem * var(--font-scale)),
+    calc(4vw * var(--font-scale)),
+    calc(3rem * var(--font-scale))
+  );
+
+  --font-home-journey-star: calc(34px * var(--font-scale));
+
+  --font-home-step-label: clamp(
+    calc(0.9rem * var(--font-scale)),
+    calc(1.3vw * var(--font-scale)),
+    calc(1.05rem * var(--font-scale))
+  );
+
+  /* =========================
+     StageView.vue / 節點
+  ========================= */
+
+  --font-stage-journey-star: calc(32px * var(--font-scale));
+
+  --font-stage-step-label: clamp(
+    calc(0.92rem * var(--font-scale)),
+    calc(1.15vw * var(--font-scale)),
+    calc(1.1rem * var(--font-scale))
+  );
+
+  --font-stage-kicker: clamp(
+    calc(1.1rem * var(--font-scale)),
+    calc(1.8vw * var(--font-scale)),
+    calc(1.45rem * var(--font-scale))
+  );
+
+  --font-stage-title: clamp(
+    calc(1.8rem * var(--font-scale)),
+    calc(4vw * var(--font-scale)),
+    calc(3rem * var(--font-scale))
+  );
+
+  --font-stage-intro: clamp(
+    calc(0.8rem * var(--font-scale)),
+    calc(1.55vw * var(--font-scale)),
+    calc(1rem * var(--font-scale))
+  );
+
+  --font-stage-knowledge-title: clamp(
+    calc(2rem * var(--font-scale)),
+    calc(4vw * var(--font-scale)),
+    calc(3rem * var(--font-scale))
+  );
+
+  --font-stage-knowledge-description: clamp(
+    calc(0.8rem * var(--font-scale)),
+    calc(1.5vw * var(--font-scale)),
+    calc(1rem * var(--font-scale))
+  );
+
+  --font-stage-knowledge-button: clamp(
+    calc(1rem * var(--font-scale)),
+    calc(1.6vw * var(--font-scale)),
+    calc(1.25rem * var(--font-scale))
+  );
+
+  --font-stage-knowledge-check: calc(1.2rem * var(--font-scale));
+
+  --font-stage-nav-button: clamp(
+    calc(1rem * var(--font-scale)),
+    calc(1.6vw * var(--font-scale)),
+    calc(1.22rem * var(--font-scale))
+  );
+
+  --font-stage-nav-icon: calc(2.2rem * var(--font-scale));
+
+  --font-component-reward-title: clamp(
+    calc(1.8rem * var(--font-scale)),
+    calc(4vw * var(--font-scale)),
+    calc(3rem * var(--font-scale))
+  );
+
+  --font-component-reward-body: clamp(
+    calc(1.1rem * var(--font-scale)),
+    calc(2vw * var(--font-scale)),
+    calc(1.55rem * var(--font-scale))
+  );
+
+  --font-modal-close-x: calc(3rem * var(--font-scale));
+
+  --font-knowledge-modal-title: clamp(
+    calc(1.8rem * var(--font-scale)),
+    calc(4vw * var(--font-scale)),
+    calc(3rem * var(--font-scale))
+  );
+
+  --font-knowledge-modal-body: clamp(
+    calc(1rem * var(--font-scale)),
+    calc(1.6vw * var(--font-scale)),
+    calc(1.25rem * var(--font-scale))
+  );
+
+  /* 行高 */
+  --line-title: 1.25;
+  --line-body: 1.8;
+}
+
+/* =========================
+   HomeView 平板 / 旅程軸變成直式時
+========================= */
+
+@media (max-width: 900px) {
+  :root {
+    --font-home-journey-star: calc(22px * var(--font-scale));
+    --font-home-step-label: calc(1rem * var(--font-scale));
+  }
+}
+
+/* =========================
+   HomeView 手機版
+========================= */
+
+@media (max-width: 560px) {
+  :root {
+    --font-home-main-title: calc(1.78rem * var(--font-scale));
+    --font-home-intro: calc(0.98rem * var(--font-scale));
+    --font-home-start-button: calc(1rem * var(--font-scale));
+    --font-home-or-text: calc(2.2rem * var(--font-scale));
+    --font-home-jump-text: calc(1rem * var(--font-scale));
+    --font-home-step-label: calc(0.93rem * var(--font-scale));
+  }
+}
+
+/* =========================
+   Stage1View 手機版
+========================= */
+
+@media (max-width: 520px) {
+  :root {
+    --font-stage-journey-star: calc(26px * var(--font-scale));
+    --font-stage-step-label: calc(0.9rem * var(--font-scale));
+    --font-modal-close-x: calc(2.4rem * var(--font-scale));
+    --font-component-reward-title: calc(1.45rem * var(--font-scale));
+    --font-component-reward-body: calc(1rem * var(--font-scale));
+  }
+}
