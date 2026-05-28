@@ -480,9 +480,14 @@ onMounted(async () => {
   window.addEventListener('focus', loadProgress)
   window.addEventListener('storage', loadProgress)
 
+  focusCurrentJourneyStep('auto')
+
+  window.setTimeout(() => {
+    focusCurrentJourneyStep('auto')
+  }, 250)
+
   await loadYouTubeApi()
   createYouTubePlayer()
-  focusCurrentJourneyStep('auto')
 })
 
 onBeforeUnmount(() => {
@@ -1134,7 +1139,7 @@ onBeforeUnmount(() => {
 .knowledge-section {
   position: relative;
   background:
-    linear-gradient(rgba(16, 52, 111, 0.78), rgba(16, 52, 111, 0.78)),
+    linear-gradient(rgba(16, 52, 111, 0.4), rgba(16, 52, 111, 0.4)),
     url("/images/stage1/stage1-knowledge-bg.png");
   background-size: cover;
   background-position: center;

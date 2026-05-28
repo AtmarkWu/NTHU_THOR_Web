@@ -141,15 +141,15 @@
   --font-modal-close-x: calc(3rem * var(--font-scale));
 
   --font-knowledge-modal-title: clamp(
-    calc(1.8rem * var(--font-scale)),
+    calc(1.5rem * var(--font-scale)),
     calc(4vw * var(--font-scale)),
-    calc(3rem * var(--font-scale))
+    calc(2.7rem * var(--font-scale))
   );
 
   --font-knowledge-modal-body: clamp(
-    calc(1rem * var(--font-scale)),
+    calc(0.8rem * var(--font-scale)),
     calc(1.6vw * var(--font-scale)),
-    calc(1.25rem * var(--font-scale))
+    calc(1.05rem * var(--font-scale))
   );
 
   /* 行高 */

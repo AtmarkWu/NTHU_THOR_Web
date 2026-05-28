@@ -91,6 +91,7 @@ const showBingoHint = ref(false)
 const brokenJourneyImages = ref({})
 const youtubePlayer = ref(null)
 const pressedItem = ref(null)
+const journeyAxisRef = ref(null)
 const stageMainRef = ref(null)
 
 const bubbleItems = ref(createBubbleItems(28))
@@ -113,6 +114,42 @@ function createBubbleItems(count) {
         '--bubble-opacity': `${(0.22 + Math.random() * 0.28).toFixed(2)}`,
       },
     }
+  })
+}
+
+function focusCurrentJourneyStep(behavior = 'auto') {
+  nextTick(() => {
+    const axis = journeyAxisRef.value
+
+    if (!axis) {
+      return
+    }
+
+    const shouldAutoFocus = window.matchMedia('(max-width: 980px)').matches
+
+    if (!shouldAutoFocus) {
+      return
+    }
+
+    const currentStep = axis.querySelector(`[data-stage-id="${currentStageId}"]`)
+
+    if (!currentStep) {
+      return
+    }
+
+    const axisRect = axis.getBoundingClientRect()
+    const stepRect = currentStep.getBoundingClientRect()
+
+    const targetLeft =
+      axis.scrollLeft +
+      (stepRect.left - axisRect.left) -
+      axis.clientWidth / 2 +
+      stepRect.width / 2
+
+    axis.scrollTo({
+      left: Math.max(0, targetLeft),
+      behavior,
+    })
   })
 }
 
@@ -449,6 +486,12 @@ onMounted(async () => {
   window.addEventListener('focus', loadProgress)
   window.addEventListener('storage', loadProgress)
 
+  focusCurrentJourneyStep('auto')
+
+  window.setTimeout(() => {
+    focusCurrentJourneyStep('auto')
+  }, 250)
+
   await loadYouTubeApi()
   createYouTubePlayer()
 })
@@ -482,7 +525,7 @@ onBeforeUnmount(() => {
       ></span>
     </div>
     <!-- 上方旅程軸 -->
-    <section class="journey-section" aria-label="爐心漫遊旅程軸">
+    <section class="journey-section" aria-label="爐心漫遊旅程軸" ref="journeyAxisRef">
       <div class="journey-track">
         <div class="track-line" aria-hidden="true"></div>
 
@@ -496,6 +539,7 @@ onBeforeUnmount(() => {
             'is-locked': step.isBingo && !bingoUnlocked,
             'is-pressed': pressedItem === `journey-${step.id}`,
           }"
+          :data-stage-id="step.id"
           type="button"
           :aria-disabled="step.isBingo && !bingoUnlocked"
           @click="goToStep(step)"
@@ -1101,8 +1145,8 @@ onBeforeUnmount(() => {
 .knowledge-section {
   position: relative;
   background:
-    linear-gradient(rgba(16, 52, 111, 0.78), rgba(16, 52, 111, 0.78)),
-    url("/images/stage1/stage1-knowledge-bg.png");
+    linear-gradient(rgba(16, 52, 111, 0.4), rgba(16, 52, 111, 0.4)),
+    url("/images/stage2/stage2-knowledge-bg.png");
   background-size: cover;
   background-position: center;
 }
@@ -1615,6 +1659,8 @@ onBeforeUnmount(() => {
     overflow-y: visible;
     max-width: 100%;
     -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    scroll-padding-inline: 24px;
   }
 
   .journey-track {
