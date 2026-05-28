@@ -127,15 +127,15 @@
   --font-stage-nav-icon: calc(2.2rem * var(--font-scale));
 
   --font-component-reward-title: clamp(
-    calc(1.8rem * var(--font-scale)),
+    calc(1.2rem * var(--font-scale)),
     calc(4vw * var(--font-scale)),
-    calc(3rem * var(--font-scale))
+    calc(2.2rem * var(--font-scale))
   );
 
   --font-component-reward-body: clamp(
-    calc(1.1rem * var(--font-scale)),
+    calc(0.8rem * var(--font-scale)),
     calc(2vw * var(--font-scale)),
-    calc(1.55rem * var(--font-scale))
+    calc(1.25rem * var(--font-scale))
   );
 
   --font-modal-close-x: calc(3rem * var(--font-scale));
