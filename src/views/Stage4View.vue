@@ -7,7 +7,7 @@ const router = useRouter()
 const currentStageId = 'stage4'
 const currentStagePath = '/stage4'
 const previousStagePath = '/stage3'
-const nextStagePath = null
+const nextStagePath = '/bingo'
 
 const stageAriaLabel = '節點四 BNCT治療室介紹'
 const stageKicker = '自力量誕生的希望'
@@ -279,6 +279,10 @@ const pageStyle = computed(() => ({
   '--component-reward-bg': `url("${componentRewardBgUrl}")`,
 }))
 
+const nextButtonText = computed(() => {
+  return nextStagePath === '/bingo' ? '進入Bingo挑戰' : '前往下一站'
+})
+
 function runPressFeedback(key, action, delay = 150) {
   pressedItem.value = key
 
@@ -466,7 +470,16 @@ function goHome() {
 }
 
 function goNextStage() {
+  if (!nextStagePath) {
+    return
+  }
+
   runPressFeedback('next-button', () => {
+    if (nextStagePath === '/bingo') {
+      router.push(nextStagePath)
+      return
+    }
+
     router.push({
       path: nextStagePath,
       hash: '#stage-title',
@@ -712,7 +725,7 @@ onBeforeUnmount(() => {
         type="button"
         @click="goNextStage"
       >
-        <span class="nav-button-text">前往下一站</span>
+        <span class="nav-button-text">{{ nextButtonText }}</span>
         <span class="icon-slot" aria-hidden="true">▶</span>
       </button>
     </section>
@@ -1412,10 +1425,10 @@ onBeforeUnmount(() => {
 }
 
 .component-reward-modal {
-  width: min(1040px, 82vw);
+  width: min(1040px, 86vw);
   max-width: calc(100vw - 32px);
+  height: min(860px, 84dvh);
   max-height: calc(100dvh - 32px);
-  min-height: min(760px, 78vh);
   border-radius: 18px;
   overflow: hidden;
   display: grid;
@@ -1793,7 +1806,15 @@ onBeforeUnmount(() => {
     padding: 38px 18px;
   }
 
-  .component-reward-modal,
+  .component-reward-modal {
+    width: calc(100vw - 32px);
+    max-width: 430px;
+    height: clamp(450px, 76dvh, 540px);
+    min-height: 0;
+    max-height: calc(100dvh - 48px);
+    border-radius: 16px;
+  }
+
   .knowledge-modal {
     width: calc(100vw - 32px);
     max-width: calc(100vw - 32px);

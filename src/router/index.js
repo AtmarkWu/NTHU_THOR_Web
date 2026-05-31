@@ -39,6 +39,11 @@ const router = createRouter({
       name: 'bingo',
       component: BingoView,
     },
+    {
+      path: '/bingo-result',
+      name: 'bingo-result',
+      component: () => import('@/views/BingoResultView.vue'),
+    },
   ],
 
   scrollBehavior(to, from, savedPosition) {

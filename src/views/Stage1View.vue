@@ -1399,10 +1399,10 @@ onBeforeUnmount(() => {
 }
 
 .component-reward-modal {
-  width: min(1040px, 82vw);
+  width: min(1040px, 86vw);
   max-width: calc(100vw - 32px);
+  height: min(860px, 84dvh);
   max-height: calc(100dvh - 32px);
-  min-height: min(760px, 78vh);
   border-radius: 18px;
   overflow: hidden;
   display: grid;
@@ -1778,7 +1778,15 @@ onBeforeUnmount(() => {
     padding: 38px 18px;
   }
 
-  .component-reward-modal,
+  .component-reward-modal {
+    width: calc(100vw - 32px);
+    max-width: 430px;
+    height: clamp(450px, 76dvh, 540px);
+    min-height: 0;
+    max-height: calc(100dvh - 48px);
+    border-radius: 16px;
+  }
+
   .knowledge-modal {
     width: calc(100vw - 32px);
     max-width: calc(100vw - 32px);

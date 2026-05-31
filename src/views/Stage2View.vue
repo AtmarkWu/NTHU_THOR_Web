@@ -250,8 +250,8 @@ const journeySteps = computed(() => [
 const knowledgePoints = [
   {
     id: 'point1',
-    buttonText: '知識 1',
-    title: '什麼是自然背景輻射？',
+    buttonText: '核分裂的由來',
+    title: '中子會撞擊燃料進行核分裂',
     body:
       '輻射並不只存在於反應爐。宇宙射線、土壤、岩石與空氣中，都可能存在微量的自然背景輻射。這些日常環境中的輻射通常非常微量，真正需要理解的是來源、類型與劑量。',
   },
@@ -604,16 +604,19 @@ onBeforeUnmount(() => {
 
       <div class="intro-text">
         <p>
-          xxxxxxxxxxxxxxxxxxxxxxxx介紹文字xxxxxxxxxxxxxxxxxxxxxxxx
+          核電廠發電的原理，其實和火力發電一樣是「燒水產生蒸汽，推動發電機」，只不過火電廠是燒煤，而反應爐是靠「核分裂」來發熱。它的運作只靠 3 個主角：
         </p>
         <p>
-          xxxxxxxxxxxxxxxxxxxxxxxx介紹文字xxxxxxxxxxxxxxxxxxxxxxxx
+          1. 燃料棒： 裡面的「鈾-235」受到中子撞擊會分裂，釋放出巨大的熱能。
         </p>
         <p>
-          xxxxxxxxxxxxxxxxxxxxxxxx介紹文字xxxxxxxxxxxxxxxxxxxxxxxx
+          2. 冷卻水： 負責把熱量帶走，變成高壓蒸汽去推動發電機運轉。
         </p>
         <p>
-          xxxxxxxxxxxxxxxxxxxxxxxx介紹文字xxxxxxxxxxxxxxxxxxxxxxxx
+          3. 控制棒： 像海綿一樣負責吸走中子，插得越深，核分裂就越慢，是控制發電功率與安全停機的關鍵。
+        </p>
+        <p>
+          反應爐就是利用「控制棒」精準調整分裂速度，讓核燃料穩定放熱，把水燒開來發電。
         </p>
       </div>
 
@@ -628,7 +631,7 @@ onBeforeUnmount(() => {
         <h2>知識重點補給站</h2>
 
         <p class="knowledge-description">
-          以下是影片中的 3 個知識重點，嘗試將他們的相關知識學習起來，讓模型升級吧！
+          以下是影片中的 3 個知識重點，嘗試將他們的相關知識學習起來，加深對「水池式反應爐」的認識吧！
         </p>
 
         <div class="knowledge-buttons">
@@ -1412,10 +1415,10 @@ onBeforeUnmount(() => {
 }
 
 .component-reward-modal {
-  width: min(1040px, 82vw);
+  width: min(1040px, 86vw);
   max-width: calc(100vw - 32px);
+  height: min(860px, 84dvh);
   max-height: calc(100dvh - 32px);
-  min-height: min(760px, 78vh);
   border-radius: 18px;
   overflow: hidden;
   display: grid;
@@ -1793,7 +1796,15 @@ onBeforeUnmount(() => {
     padding: 38px 18px;
   }
 
-  .component-reward-modal,
+  .component-reward-modal {
+    width: calc(100vw - 32px);
+    max-width: 430px;
+    height: clamp(450px, 76dvh, 540px);
+    min-height: 0;
+    max-height: calc(100dvh - 48px);
+    border-radius: 16px;
+  }
+
   .knowledge-modal {
     width: calc(100vw - 32px);
     max-width: calc(100vw - 32px);
