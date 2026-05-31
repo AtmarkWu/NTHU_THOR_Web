@@ -28,6 +28,8 @@ const youtubePlayerElementId = 'stage2-youtube-player'
  * 請放在 public/images/stage1/stage1-component-reward.png
  */
 const componentRewardBgUrl = '/images/stage2/stage2-component-reward.png'
+const stageMainImageUrl = '/images/stage2/stage2-main-image.png'
+const isStageMainImageExpanded = ref(false)
 
 const videoKeys = {
   stage1: 'thorWeb_stage1_videoWatched',
@@ -86,6 +88,7 @@ const viewedPoints = ref({
 })
 
 const activePointId = ref(null)
+const activePointVideoStarted = ref(false)
 const showComponentRewardModal = ref(false)
 const showBingoHint = ref(false)
 const brokenJourneyImages = ref({})
@@ -115,6 +118,20 @@ function createBubbleItems(count) {
       },
     }
   })
+}
+
+function toggleStageMainImage() {
+  const willExpand = !isStageMainImageExpanded.value
+  isStageMainImageExpanded.value = willExpand
+
+  /**
+   * 因為主介紹區不再是影片，所以不會有 YouTube ended 事件。
+   * 這裡改成：第一次點圖片放大時，視為完成節點介紹，觸發獲得組件。
+   * 如果你不想點圖片就獲得組件，把下面這段 if 刪掉即可。
+   */
+  if (willExpand) {
+    handleStageVideoEnded()
+  }
 }
 
 function focusCurrentJourneyStep(behavior = 'auto') {
@@ -253,27 +270,78 @@ const knowledgePoints = [
     buttonText: '核分裂的由來',
     title: '中子會撞擊燃料進行核分裂',
     body:
-      '輻射並不只存在於反應爐。宇宙射線、土壤、岩石與空氣中，都可能存在微量的自然背景輻射。這些日常環境中的輻射通常非常微量，真正需要理解的是來源、類型與劑量。',
+      '核分裂的原理，是以慢中子精準撞擊燃料棒中的鈾-235原子核。當鈾原子核分裂時，會釋放巨大能量，並噴出 2~3 個新中子；這些中子繼續撞擊其他燃料，形成持續的核分裂連鎖反應。核分裂的原理，是以慢中子精準撞擊燃料棒中的鈾-235原子核。當鈾原子核分裂時，會釋放巨大能量，並噴出 2~3 個新中子；這些中子繼續撞擊其他燃料，形成持續的核分裂連鎖反應。\n\n而水池式反應爐運作時會產生「契倫可夫光」， 因為光在水中的傳播速度會變慢。此時，核分裂產生的高能帶電粒子，在水中的前進速度超越了水中的光速！這道藍光正是反應爐正在穩定運轉的證據。',
+    media: {
+      type: 'youtube',
+      youtubeId: '2vD9HnyeMmw',
+    },
   },
   {
     id: 'point2',
-    buttonText: '知識 2',
-    title: '游離輻射與非游離輻射有什麼不同？',
+    buttonText: '控制棒的用途',
+    title: '控制棒是反應爐的油門與煞車',
     body:
-      '我們生活中常見的手機、微波爐、電視多屬於非游離輻射，與核反應相關的游離輻射不同。不同種類的輻射能量不同，對人體的影響也不同，因此不能把所有「輻射」都視為同一種危險。',
+      '控制棒是由能強力吸收中子的材質（如硼、鎘）製成，如同「中子海綿」。若控制棒從核心抽離，中子數量便會變多，核反應隨之加速；但當控制棒插入核心，將會吸走中子，沒有中子撞擊燃料，連鎖反應就會減速或停止。當反應爐遇到任何異常狀況，控制棒會因重力在極短時間內自動全數掉落進入核心，瞬間強制熄火，確保絕對安全。',
+    media: {
+      type: 'youtube',
+      youtubeId: 'E4W7tgMYG74',
+    },
   },
   {
     id: 'point3',
-    buttonText: '知識 3',
-    title: '輻射防護的三個原則',
+    buttonText: '監測板的功能',
+    title: '作為反應爐的「大腦」',
     body:
-      '輻射防護常用「時間、距離、屏蔽」來理解。停留時間越短、與來源距離越遠、屏蔽越完整，接受到的影響通常越低。警告標誌並不代表立即危險，而是代表此地需要被管理與監測。',
+      '24小時嚴密把關，任何數據異常，系統會立刻報警並自動保護停機。一共有3大核心數據，用來分析監控，他們分別是：\n1.中子通量：看功率，確保核分裂穩定不超載。\n2.水溫與壓力：看水池，確保冷卻與輻射屏蔽正常。\n3.輻射劑量：看安全，確保廠房與校園絕對安全。',
+    media: {
+      type: 'image',
+      src: '/images/stage2/stage2-point3-image.png',
+      alt: '輻射防護補充圖片',
+    },
   },
 ]
+
+
+const supplementSection = {
+  title: '前往下一站之前，補充點小知識吧',
+  paragraphs: [
+    '第一張圖片展示了我們日常生活中會接觸到輻射的途徑、劑量，第二張圖則是展示了，人體平常暴露在多少的背景輻射之下，快來看看有沒有哪一個途徑跟輻射量，是出乎你意料之外的呢？',
+  ],
+  images: [
+    {
+      src: '/images/stage2/stage2-supplement-1.png',
+      alt: '水池式反應爐補充知識圖片 1',
+    },
+    {
+      src: '/images/stage2/stage2-supplement-2.png',
+      alt: '水池式反應爐補充知識圖片 2',
+    },
+  ],
+}
 
 const activePoint = computed(() => {
   return knowledgePoints.find((point) => point.id === activePointId.value)
 })
+
+const activePointYoutubeThumbUrl = computed(() => {
+  if (!activePoint.value || activePoint.value.media?.type !== 'youtube') {
+    return ''
+  }
+
+  return `https://img.youtube.com/vi/${activePoint.value.media.youtubeId}/hqdefault.jpg`
+})
+
+const activePointYoutubeEmbedUrl = computed(() => {
+  if (!activePoint.value || activePoint.value.media?.type !== 'youtube') {
+    return ''
+  }
+
+  return `https://www.youtube.com/embed/${activePoint.value.media.youtubeId}?rel=0&modestbranding=1&playsinline=1`
+})
+
+function playActivePointVideo() {
+  activePointVideoStarted.value = true
+}
 
 const pageStyle = computed(() => ({
   '--component-reward-bg': `url("${componentRewardBgUrl}")`,
@@ -326,6 +394,7 @@ function closeComponentRewardModal() {
 
 function openPoint(point) {
   runPressFeedback(`knowledge-${point.id}`, () => {
+    activePointVideoStarted.value = false
     activePointId.value = point.id
     localStorage.setItem(pointKeyMap[point.id], 'true')
     loadProgress()
@@ -333,6 +402,7 @@ function openPoint(point) {
 }
 
 function closeKnowledgeModal() {
+  activePointVideoStarted.value = false
   activePointId.value = null
 }
 
@@ -481,7 +551,7 @@ function handleJourneyImageError(stepId) {
   }
 }
 
-onMounted(async () => {
+onMounted(() => {
   loadProgress()
   window.addEventListener('focus', loadProgress)
   window.addEventListener('storage', loadProgress)
@@ -491,9 +561,6 @@ onMounted(async () => {
   window.setTimeout(() => {
     focusCurrentJourneyStep('auto')
   }, 250)
-
-  await loadYouTubeApi()
-  createYouTubePlayer()
 })
 
 onBeforeUnmount(() => {
@@ -619,16 +686,28 @@ onBeforeUnmount(() => {
           反應爐就是利用「控制棒」精準調整分裂速度，讓核燃料穩定放熱，把水燒開來發電。
         </p>
       </div>
+      <button
+        class="stage-main-image-card"
+        :class="{ 'is-expanded': isStageMainImageExpanded }"
+        type="button"
+        aria-label="點擊放大或縮小水池式反應爐介紹圖片"
+        @click="toggleStageMainImage"
+      >
+        <img
+          :src="stageMainImageUrl"
+          alt="水池式反應爐介紹圖"
+        />
+      </button>
 
-      <div class="video-card youtube-player-shell">
-        <div :id="youtubePlayerElementId"></div>
-      </div>
+      <p class="stage-main-image-hint">
+        點一下圖片可獲得組件，並讓圖片放大，再點一次即可縮小
+      </p>
     </section>
 
-    <!-- 知識重點補給站 -->
-    <section class="knowledge-section" aria-label="知識重點補給站">
+    <!-- 知識重點 -->
+    <section class="knowledge-section" aria-label="知識重點寶庫">
       <div class="knowledge-overlay">
-        <h2>知識重點補給站</h2>
+        <h2>知識重點寶庫</h2>
 
         <p class="knowledge-description">
           以下是影片中的 3 個知識重點，嘗試將他們的相關知識學習起來，加深對「水池式反應爐」的認識吧！
@@ -658,6 +737,35 @@ onBeforeUnmount(() => {
               ✓
             </span>
           </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 前往下一站前的補充小知識 -->
+    <section class="supplement-section" aria-label="前往下一站之前的補充小知識">
+      <h2>{{ supplementSection.title }}</h2>
+
+      <div class="supplement-card">
+        <div class="supplement-text">
+          <p
+            v-for="paragraph in supplementSection.paragraphs"
+            :key="paragraph"
+          >
+            {{ paragraph }}
+          </p>
+        </div>
+
+        <div class="supplement-image-list">
+          <figure
+            v-for="image in supplementSection.images"
+            :key="image.src"
+            class="supplement-image-wrap"
+          >
+            <img
+              :src="image.src"
+              :alt="image.alt"
+            />
+          </figure>
         </div>
       </div>
     </section>
@@ -772,6 +880,46 @@ onBeforeUnmount(() => {
 
           <div class="knowledge-modal-content">
             <p>{{ activePoint.body }}</p>
+
+            <div
+              v-if="activePoint.media"
+              class="knowledge-modal-media"
+            >
+              <template v-if="activePoint.media.type === 'youtube'">
+                <button
+                  v-if="!activePointVideoStarted"
+                  class="knowledge-video-thumb"
+                  type="button"
+                  aria-label="播放知識重點影片"
+                  @click="playActivePointVideo"
+                >
+                  <img
+                    :src="activePointYoutubeThumbUrl"
+                    :alt="`${activePoint.title} 影片縮圖`"
+                  />
+
+                  <span class="knowledge-video-play" aria-hidden="true">
+                    ▶
+                  </span>
+                </button>
+
+                <iframe
+                  v-else
+                  class="knowledge-video-frame"
+                  :src="activePointYoutubeEmbedUrl"
+                  title="知識重點影片"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowfullscreen
+                ></iframe>
+              </template>
+
+              <img
+                v-else-if="activePoint.media.type === 'image'"
+                class="knowledge-modal-image"
+                :src="activePoint.media.src"
+                :alt="activePoint.media.alt || activePoint.title"
+              />
+            </div>
           </div>
         </article>
       </section>
@@ -1120,6 +1268,58 @@ onBeforeUnmount(() => {
   box-shadow: none;
 }
 
+.stage-main-image-card {
+  width: min(900px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+  margin-inline: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 18px;
+  overflow: hidden;
+  background: rgba(6, 44, 104, 0.18);
+  cursor: pointer;
+  display: block;
+  box-shadow:
+    0 8px 0 rgba(8, 28, 65, 0.18),
+    0 18px 34px rgba(0, 20, 60, 0.16);
+  transition:
+    width 0.28s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.stage-main-image-card:hover,
+.stage-main-image-card:focus-visible {
+  transform: translateY(-3px);
+  box-shadow:
+    0 10px 0 rgba(8, 28, 65, 0.18),
+    0 24px 42px rgba(0, 20, 60, 0.22);
+}
+
+.stage-main-image-card img {
+  width: 100%;
+  max-height: min(680px, 68vh);
+  display: block;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.stage-main-image-card.is-expanded {
+  width: min(1180px, calc(100vw - 32px));
+}
+
+.stage-main-image-card.is-expanded img {
+  max-height: calc(100dvh - 140px);
+}
+
+.stage-main-image-hint {
+  margin: 18px auto 0;
+  color: rgba(16, 23, 43, 0.72);
+  font-size: clamp(14px, 1.2vw, 18px);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
 .youtube-player-shell {
   position: relative;
   aspect-ratio: 16 / 9;
@@ -1247,6 +1447,89 @@ onBeforeUnmount(() => {
 
 .knowledge-button.is-viewed {
   background: #acff93;
+}
+
+/* =========================
+   Supplement
+========================= */
+
+.supplement-section {
+  padding: 78px 20px 36px;
+  text-align: center;
+}
+
+.supplement-section h2 {
+  width: min(900px, 88vw);
+  margin: 0 auto 44px;
+  color: #ffffff;
+  font-size: clamp(28px, 4vw, 54px);
+  line-height: 1.25;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-shadow:
+    0 4px 0 rgba(0, 24, 80, 0.26),
+    0 12px 28px rgba(0, 20, 60, 0.22);
+}
+
+.supplement-card {
+  width: min(1040px, 90vw);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
+  gap: clamp(28px, 5vw, 72px);
+  align-items: center;
+  padding: clamp(28px, 5vw, 58px);
+  border-radius: 20px;
+  background: rgba(6, 44, 104, 0.34);
+  box-shadow: 0 18px 44px rgba(0, 20, 60, 0.16);
+}
+
+.supplement-text {
+  color: #ffffff;
+  text-align: center;
+  font-size: var(--font-stage-intro);
+  line-height: 1.75;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+.supplement-text p {
+  margin: 0 0 18px;
+}
+
+.supplement-text p:last-child {
+  margin-bottom: 0;
+}
+
+.supplement-image-wrap {
+  margin: 0;
+}
+
+.supplement-image-wrap img {
+  width: 100%;
+  max-height: 520px;
+  display: block;
+  object-fit: contain;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.supplement-image-list {
+  display: grid;
+  gap: 24px;
+}
+
+.supplement-image-wrap {
+  margin: 0;
+}
+
+.supplement-image-wrap img {
+  width: 100%;
+  max-height: 360px;
+  display: block;
+  object-fit: contain;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.14);
 }
 
 /* =========================
@@ -1538,6 +1821,80 @@ onBeforeUnmount(() => {
   background: #031b42;
   color: #ffffff;
   text-align: left;
+  display: grid;
+  gap: 36px;
+  white-space: pre-line;
+}
+
+.knowledge-modal-media {
+  width: 100%;
+}
+
+.knowledge-video-thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000000;
+  cursor: pointer;
+  display: block;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28);
+}
+
+.knowledge-video-thumb img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  filter: brightness(0.78);
+  transition:
+    transform 0.18s ease,
+    filter 0.18s ease;
+}
+
+.knowledge-video-thumb:hover img,
+.knowledge-video-thumb:focus-visible img {
+  transform: scale(1.04);
+  filter: brightness(0.95);
+}
+
+.knowledge-video-play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 82px;
+  height: 58px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.88);
+  color: #062c68;
+  font-size: 30px;
+  font-weight: 900;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+
+.knowledge-video-frame {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: block;
+  border: 0;
+  border-radius: 12px;
+  background: #000000;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28);
+}
+
+.knowledge-modal-image {
+  width: 100%;
+  max-height: 520px;
+  display: block;
+  object-fit: contain;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .knowledge-modal-content p {
@@ -1752,6 +2109,19 @@ onBeforeUnmount(() => {
   .nav-button-next .icon-slot {
     right: 28px;
   }
+
+  .supplement-section {
+    padding: 58px 16px 24px;
+  }
+
+  .supplement-card {
+    grid-template-columns: 1fr;
+    width: min(520px, 90vw);
+  }
+
+  .supplement-text {
+    text-align: left;
+  }
 }
 
 @media (max-width: 520px) {
@@ -1854,6 +2224,27 @@ onBeforeUnmount(() => {
 
   .component-reward-text h2 {
     line-height: 1.45;
+  }
+
+  .knowledge-modal-content {
+    gap: 24px;
+  }
+
+  .knowledge-video-play {
+    width: 64px;
+    height: 46px;
+    font-size: 24px;
+  }
+
+  .stage-main-image-card,
+  .stage-main-image-card.is-expanded {
+    width: calc(100vw - 32px);
+    border-radius: 12px;
+  }
+
+  .stage-main-image-card img,
+  .stage-main-image-card.is-expanded img {
+    max-height: none;
   }
 }
 </style>

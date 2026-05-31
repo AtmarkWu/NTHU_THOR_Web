@@ -26,7 +26,7 @@ const resultStarText = {
 
 const defaultResultImage = '/images/bingo/bingo-result-placeholder.png'
 
-const defaultNote = '※ 這座反應爐是由你在旅程中學習、Bingo挑戰中翻轉的大眾迷思面向，累積而成的想像中的反應爐。'
+const defaultNote = '※ 這座反應爐是由你在旅程中學習、Bingo挑戰中翻轉的大眾迷思面向，累積而成的想像中的反應爐！如與現實存在的反應爐雷同，純屬巧合'
 
 const defaultDescription =
   '這裡是結果解說文字的保留位置。之後可以依照 5 種層面結果 × 4 種星星階段，替換成 20 種不同的正式文字。'

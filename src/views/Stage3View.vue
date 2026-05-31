@@ -20,7 +20,7 @@ const componentRewardTitle = '獲得了組件【冷卻水池】'
  * 例如影片網址是：https://www.youtube.com/watch?v=AbCdEf12345
  * 那 youtubeVideoId 就填 AbCdEf12345
  */
-const youtubeVideoId = 'dNvI23qerUo'
+const youtubeVideoId = 'jwa8rJBdpzo'
 const youtubePlayerElementId = 'stage3-youtube-player'
 
 /**
@@ -250,24 +250,24 @@ const journeySteps = computed(() => [
 const knowledgePoints = [
   {
     id: 'point1',
-    buttonText: '知識 1',
-    title: '什麼是自然背景輻射？',
+    buttonText: '冷卻水池介紹',
+    title: '冷卻水池的運作與功能',
     body:
-      '輻射並不只存在於反應爐。宇宙射線、土壤、岩石與空氣中，都可能存在微量的自然背景輻射。這些日常環境中的輻射通常非常微量，真正需要理解的是來源、類型與劑量。',
+      '在水池式反應爐裡，水同時扮演冷卻劑、中子緩速劑，以及輻射屏障三種角色。水有很多氫和氧，它們都有很高的散射各種中子能量的可能性。每次氫氧和副產物相互作用，中子都會將其部分能量傳遞到水中，同時熱能藉由水中對流系統冷卻。',
   },
   {
     id: 'point2',
-    buttonText: '知識 2',
-    title: '游離輻射與非游離輻射有什麼不同？',
+    buttonText: '水池的危險性',
+    title: '水池上層的水沒有危險性',
     body:
-      '我們生活中常見的手機、微波爐、電視多屬於非游離輻射，與核反應相關的游離輻射不同。不同種類的輻射能量不同，對人體的影響也不同，因此不能把所有「輻射」都視為同一種危險。',
+      '冷卻水池深度約有10公尺，而每10公分的水，能讓其中所含中子的強度降低約一半，所以上層的水池幾乎沒有危險性，因為中子強度已經被降到原本的7.89 x 10⁻³¹倍，這個數字可是小到趨近於零喔。',
   },
   {
     id: 'point3',
-    buttonText: '知識 3',
-    title: '輻射防護的三個原則',
+    buttonText: '核廢料存放',
+    title: '水泥牆是我們的堅強盾牌',
     body:
-      '輻射防護常用「時間、距離、屏蔽」來理解。停留時間越短、與來源距離越遠、屏蔽越完整，接受到的影響通常越低。警告標誌並不代表立即危險，而是代表此地需要被管理與監測。',
+      '核廢料等副產物，會被妥善地隔離在水泥牆內，也就是我們參觀時水池旁一堆堆的灰白色小丘。即使貼近牆面也不會超出輻射警示量，非常安全！',
   },
 ]
 
@@ -600,21 +600,6 @@ onBeforeUnmount(() => {
       <div class="stage-title-card">
         <p class="stage-kicker">{{ stageKicker }}</p>
         <h1>{{ stageTitle }}</h1>
-      </div>
-
-      <div class="intro-text">
-        <p>
-          xxxxxxxxxxxxxxxxxxxxxxxx介紹文字xxxxxxxxxxxxxxxxxxxxxxxx
-        </p>
-        <p>
-          xxxxxxxxxxxxxxxxxxxxxxxx介紹文字xxxxxxxxxxxxxxxxxxxxxxxx
-        </p>
-        <p>
-          xxxxxxxxxxxxxxxxxxxxxxxx介紹文字xxxxxxxxxxxxxxxxxxxxxxxx
-        </p>
-        <p>
-          xxxxxxxxxxxxxxxxxxxxxxxx介紹文字xxxxxxxxxxxxxxxxxxxxxxxx
-        </p>
       </div>
 
       <div class="video-card youtube-player-shell">
